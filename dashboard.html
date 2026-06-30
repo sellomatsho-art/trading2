@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Polymarket Bot - Mobile Dashboard</title>
+   <style>
+       * {
+           margin: 0;
+           padding: 0;
+           box-sizing: border-box;
+       }
+
+       body {
+           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+           background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+           color: #fff;
+           min-height: 100vh;
+           padding: 12px;
+           overflow-x: hidden;
+       }
+
+       .container {
+           max-width: 600px;
+           margin: 0 auto;
+       }
+
+       header {
+           margin-bottom: 20px;
+           padding-bottom: 16px;
+           border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+       }
+
+       h1 {
+           font-size: 24px;
+           font-weight: 700;
+           background: linear-gradient(90deg, #4ade80 0%, #22d3ee 100%);
+           -webkit-background-clip: text;
+           -webkit-text-fill-color: transparent;
+           background-clip: text;
+           margin-bottom: 4px;
+       }
+
+       .subtitle {
+           font-size: 12px;
+           color: #94a3b8;
+       }
+
+       .status {
+           display: inline-block;
+           padding: 4px 12px;
+           border-radius: 4px;
+           font-size: 11px;
+           font-weight: 600;
+           margin-top: 8px;
+           background: #166534;
+           color: #86efac;
+       }
+
+       .status.offline {
+           background: #7f1d1d;
+           color: #fca5a5;
+       }
+
+       .metrics {
+           display: grid;
+           grid-template-columns: 1fr 1fr;
+           gap: 12px;
+           margin-bottom: 20px;
+       }
+
+       .metric {
+           background: rgba(30, 41, 59, 0.8);
+           border: 1px solid rgba(148, 163, 184, 0.2);
+           border-radius: 8px;
+           padding: 16px;
+           backdrop-filter: blur(10px);
+       }
+
+       .metric label {
+           font-size: 11px;
+           color: #94a3b8;
+           text-transform: uppercase;
+           letter-spacing: 0.5px;
+           display: block;
+           margin-bottom: 8px;
+       }
+
+       .metric value {
+           font-size: 20px;
+           font-weight: 700;
+           display: block;
+       }
+
+       .metric.pnl value {
+           color: #4ade80;
+       }
+
+       .metric.win value {
+           color: #22d3ee;
+       }
+
+       .metric.trades value {
+           color: #a78bfa;
+       }
+
+       .metric.active value {
+           color: #fb923c;
+       }
+
+       .section {
+           margin-bottom: 20px;
+       }
+
+       .section-title {
+           font-size: 14px;
+           font-weight: 600;
+           color: #e2e8f0;
+           margin-bottom: 12px;
+           display: flex;
+           align-items: center;
+           gap: 8px;
+       }
+
+       .positions, .trades {
+           display: flex;
+           flex-direction: column;
+           gap: 8px;
+       }
+
+       .position, .trade {
+           background: rgba(30, 41, 59, 0.6);
+           border: 1px solid rgba(148, 163, 184, 0.2);
+           border-radius: 6px;
+           padding: 12px;
+           font-size: 12px;
+       }
+
+       .position-header {
+           display: flex;
+           justify-content: space-between;
+           align-items: start;
+           margin-bottom: 8px;
+       }
+
+       .position-name {
+           font-weight: 600;
+           font-size: 13px;
+           flex: 1;
+           margin-right: 8px;
+       }
+
+       .position-pnl {
+           font-weight: 700;
+           padding: 2px 8px;
+           border-radius: 3px;
+           white-space: nowrap;
+           font-size: 11px;
+       }
+
+       .position-pnl.positive {
+           background: rgba(34, 197, 94, 0.2);
+           color: #86efac;
+       }
+
+       .position-pnl.negative {
+           background: rgba(239, 68, 68, 0.2);
+           color: #fca5a5;
+       }
+
+       .position-details {
+           color: #cbd5e1;
+           font-size: 11px;
+           line-height: 1.6;
+       }
+
+       .position-details div {
+           display: flex;
+           justify-content: space-between;
+           gap: 8px;
+       }
+
+       .trade {
+           display: flex;
+           gap: 8px;
+           align-items: center;
+       }
+
+       .trade-type {
+           font-weight: 700;
+           text-transform: uppercase;
+           font-size: 10px;
+           padding: 2px 6px;
+           border-radius: 2px;
+           white-space: nowrap;
+       }
+
+       .trade-type.buy {
+           background: rgba(34, 211, 238, 0.2);
+           color: #67e8f9;
+       }
+
+       .trade-type.sell {
+           background: rgba(168, 85, 247, 0.2);
+           color: #d8b4fe;
+       }
+
+       .trade-info {
+           flex: 1;
+       }
+
+       .trade-market {
+           font-weight: 600;
+           font-size: 12px;
+       }
+
+       .trade-details {
+           font-size: 10px;
+           color: #94a3b8;
+       }
+
+       .trade-roi {
+           font-weight: 700;
+           color: #86efac;
+           text-align: right;
+           white-space: nowrap;
+       }
+
+       .loading {
+           text-align: center;
+           padding: 40px 20px;
+           color: #94a3b8;
+       }
+
+       .spinner {
+           display: inline-block;
+           width: 20px;
+           height: 20px;
+           border: 2px solid rgba(74, 222, 128, 0.2);
+           border-top-color: #4ade80;
+           border-radius: 50%;
+           animation: spin 1s linear infinite;
+           margin-bottom: 8px;
+       }
+
+       @keyframes spin {
+           to { transform: rotate(360deg); }
+       }
+
+       .error {
+           background: rgba(239, 68, 68, 0.1);
+           border: 1px solid rgba(239, 68, 68, 0.3);
+           color: #fca5a5;
+           padding: 12px;
+           border-radius: 6px;
+           margin-bottom: 16px;
+           font-size: 12px;
+       }
+
+       .footer {
+           text-align: center;
+           padding: 16px;
+           color: #64748b;
+           font-size: 11px;
+           margin-top: 20px;
+           border-top: 1px solid rgba(148, 163, 184, 0.2);
+       }
+
+       @media (prefers-reduced-motion: reduce) {
+           * {
+               animation-duration: 0.01ms !important;
+               animation-iteration-count: 1 !important;
+           }
+       }
+   </style>
+</head>
+<body>
+   <div class="container">
+       <header>
+           <h1>📊 Polymarket Bot</h1>
+           <p class="subtitle">Systematic edge exploitation</p>
+           <span id="status" class="status">Loading...</span>
+       </header>
+
+       <div id="error" style="display: none;"></div>
+
+       <div id="content" style="display: none;">
+           <!-- Key Metrics -->
+           <div class="metrics">
+               <div class="metric pnl">
+                   <label>Total P&L</label>
+                   <value id="total-profit">$0.00</value>
+               </div>
+               <div class="metric win">
+                   <label>Win Rate</label>
+                   <value id="win-rate">0%</value>
+               </div>
+               <div class="metric trades">
+                   <label>Total Trades</label>
+                   <value id="total-trades">0</value>
+               </div>
+               <div class="metric active">
+                   <label>Active Now</label>
+                   <value id="active-positions">0</value>
+               </div>
+           </div>
+
+           <!-- Active Positions -->
+           <div class="section" id="positions-section" style="display: none;">
+               <div class="section-title">📈 Active Positions</div>
+               <div id="positions" class="positions"></div>
+           </div>
+
+           <!-- Recent Trades -->
+           <div class="section">
+               <div class="section-title">✓ Recent Trades</div>
+               <div id="trades" class="trades"></div>
+           </div>
+       </div>
+
+       <div id="loading" class="loading">
+           <div class="spinner"></div>
+           <p>Connecting to bot...</p>
+       </div>
+
+       <div class="footer">
+           <p>🤖 Running on Railway • Last updated: <span id="last-update">--:--</span></p>
+       </div>
+   </div>
+
+   <script>
+       const API_BASE = window.location.origin;
+       let autoRefresh = setInterval(fetchData, 2000);
+
+       async function fetchData() {
+           try {
+               const [stats, positions, trades] = await Promise.all([
+                   fetch(`${API_BASE}/stats`).then(r => r.json()),
+                   fetch(`${API_BASE}/positions`).then(r => r.json()).catch(() => []),
+                   fetch(`${API_BASE}/trades`).then(r => r.json()).catch(() => []),
+               ]);
+
+               updateUI(stats, positions, trades);
+               document.getElementById('error').style.display = 'none';
+               document.getElementById('content').style.display = 'block';
+               document.getElementById('loading').style.display = 'none';
+
+           } catch (err) {
+               console.error('Error:', err);
+               showError('Cannot connect to bot. Is it running?');
+           }
+       }
+
+       function updateUI(stats, positions, trades) {
+           // Update metrics
+           document.getElementById('total-profit').textContent = `$${stats.total_profit?.toLocaleString('en-US', {maximumFractionDigits: 2}) || '0'}`;
+           document.getElementById('win-rate').textContent = `${(stats.win_rate * 100)?.toFixed(1) || '0'}%`;
+           document.getElementById('total-trades').textContent = stats.total_trades || '0';
+           document.getElementById('active-positions').textContent = stats.active_positions || '0';
+
+           // Update status
+           const status = document.getElementById('status');
+           status.textContent = '● Live';
+           status.classList.remove('offline');
+
+           // Update positions
+           const positionsDiv = document.getElementById('positions');
+           const posSection = document.getElementById('positions-section');
+
+           if (positions && positions.length > 0) {
+               posSection.style.display = 'block';
+               positionsDiv.innerHTML = positions.map(pos => `
+                   <div class="position">
+                       <div class="position-header">
+                           <div class="position-name">${pos.market}</div>
+                           <div class="position-pnl ${pos.unrealized >= 0 ? 'positive' : 'negative'}">
+                               ${pos.unrealized >= 0 ? '+' : ''}${pos.unrealized.toFixed(0)}
+                           </div>
+                       </div>
+                       <div class="position-details">
+                           <div><span>${pos.entry.toFixed(3)}</span> → <span>${pos.current.toFixed(3)}</span></div>
+                           <div><span>Size: ${pos.size} shares</span> <span>${pos.timestamp.split('T')[1].slice(0, 5)}</span></div>
+                       </div>
+                   </div>
+               `).join('');
+           } else {
+               posSection.style.display = 'none';
+           }
+
+           // Update trades
+           const tradesDiv = document.getElementById('trades');
+           if (trades && trades.length > 0) {
+               tradesDiv.innerHTML = trades.map(trade => `
+                   <div class="trade">
+                       <div class="trade-type ${trade.type}">${trade.type}</div>
+                       <div class="trade-info">
+                           <div class="trade-market">${trade.market}</div>
+                           <div class="trade-details">$${trade.entry.toFixed(3)} → $${trade.exit.toFixed(3)}</div>
+                       </div>
+                       <div class="trade-roi">${trade.roi.toFixed(1)}%</div>
+                   </div>
+               `).join('');
+           } else {
+               tradesDiv.innerHTML = '<p style="color: #94a3b8; font-size: 12px;">No trades yet...</p>';
+           }
+
+           // Update timestamp
+           const now = new Date().toLocaleTimeString();
+           document.getElementById('last-update').textContent = now;
+       }
+
+       function showError(message) {
+           const errorDiv = document.getElementById('error');
+           errorDiv.innerHTML = `<div class="error">${message}</div>`;
+           errorDiv.style.display = 'block';
+           document.getElementById('content').style.display = 'none';
+           document.getElementById('loading').style.display = 'none';
+
+           const status = document.getElementById('status');
+           status.textContent = '● Offline';
+           status.classList.add('offline');
+       }
+
+       // Initial load
+       fetchData();
+   </script>
+</body>
+</html>
